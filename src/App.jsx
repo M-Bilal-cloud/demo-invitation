@@ -125,6 +125,18 @@ const imagesToPreload = [GATE_IMG, GROUND_IMG, '/images/stamp-1.png', '/images/l
 // hero/footer: beech (swans + mountains), date: left cherry tree, families: right pavilion
 const BG_POS = { hero: 50, date: 14, families: 86, celebrations: 34, footer: 64 };
 
+// ---------- INVITATION KA TEXT (sab kuch yahan se edit karo) ----------
+const INVITE = {
+  bismillah: 'بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ',
+  dua: 'بَارَكَ ٱللَّهُ لَكِ وَبَارَكَ عَلَيْكِ وَجَمَعَ بَيْنَكُمَا فِي خَيْرٍ',
+  husband: 'Husband Name',
+  wife: 'Wife Name',
+  boyFamily: { family: 'Boy Family Name', father: 'Father Name', mother: 'Mother Name' },
+  girlFamily: { family: 'Girl Family Name', father: 'Father Name', mother: 'Mother Name' },
+};
+// Arabic ke liye font (harakat/tashkeel saaf dikhte hain)
+const ARABIC_FONT = "'Amiri', 'Scheherazade New', 'Noto Naskh Arabic', 'Traditional Arabic', serif";
+
 // Transparent (glass) card ka style
 const GLASS =
   'rounded-3xl border border-white/50 bg-white/30 backdrop-blur-md shadow-[0_10px_40px_rgba(90,62,43,0.16)]';
@@ -278,8 +290,9 @@ function ScratchCard({ children }) {
 
       <canvas
         ref={canvasRef}
-        className={`absolute inset-0 w-full h-full cursor-pointer transition-opacity duration-700 ${revealed ? 'opacity-0 pointer-events-none' : 'opacity-100'
-          }`}
+        className={`absolute inset-0 w-full h-full cursor-pointer transition-opacity duration-700 ${
+          revealed ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
         style={{ touchAction: 'none' }}
         onPointerDown={onDown}
         onPointerMove={onMove}
@@ -342,7 +355,7 @@ const downloadIcs = () => {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Mohsin and Iqra//Wedding Invitation//EN',
+    'PRODID:-//Wedding Invitation//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
   ];
@@ -351,13 +364,13 @@ const downloadIcs = () => {
     const name = c.title.charAt(0) + c.title.slice(1).toLowerCase();
     lines.push(
       'BEGIN:VEVENT',
-      `UID:${c.key}-2026@mohsin-iqra-wedding`,
+      `UID:${c.key}-2026@wedding-invitation`,
       `DTSTAMP:${stamp}`,
       `DTSTART:${c.startUtc}`,
       `DTEND:${c.endUtc}`,
-      `SUMMARY:${icsText(`${name} - Mohsin & Iqra`)}`,
+      `SUMMARY:${icsText(`${name} - ${INVITE.husband} & ${INVITE.wife}`)}`,
       `LOCATION:${icsText(`${c.venue}, ${c.address}`)}`,
-      `DESCRIPTION:${icsText(`${name} of Mohsin & Iqra. ${c.time}. Directions: ${c.link}`)}`,
+      `DESCRIPTION:${icsText(`${name} of ${INVITE.husband} & ${INVITE.wife}. ${c.time}. Directions: ${c.link}`)}`,
       'END:VEVENT'
     );
   });
@@ -368,7 +381,7 @@ const downloadIcs = () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'Mohsin-Iqra-Wedding.ics';
+  a.download = 'Wedding-Invitation.ics';
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -405,6 +418,16 @@ function App() {
   const familyContentRef = useRef(null);
 
   useLenis(lenisRef);
+
+  // Arabic font (Amiri) load karo
+  useEffect(() => {
+    if (document.getElementById('arabic-font')) return;
+    const link = document.createElement('link');
+    link.id = 'arabic-font';
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap';
+    document.head.appendChild(link);
+  }, []);
 
   useEffect(() => {
     const onResize = () => setNarrow(window.innerWidth / window.innerHeight < 0.85);
@@ -751,8 +774,9 @@ function App() {
 
       {/* Loading screen: images load hone tak */}
       <div
-        className={`fixed inset-0 z-[100] bg-[#F4EFEB] flex flex-col items-center justify-center gap-4 transition-opacity duration-700 ${loaded ? 'opacity-0 pointer-events-none' : 'opacity-100'
-          }`}
+        className={`fixed inset-0 z-[100] bg-[#F4EFEB] flex flex-col items-center justify-center gap-4 transition-opacity duration-700 ${
+          loaded ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
       >
         <span className="text-[#D4AF37] text-3xl animate-pulse">✦</span>
         <p className="font-serif italic text-amber-900 text-lg tracking-wide">Loading Invitation...</p>
@@ -863,9 +887,9 @@ function App() {
               // Phone par upar/neeche ke kinare filler mein ghul jayen
               ...(narrow
                 ? {
-                  WebkitMaskImage: 'linear-gradient(to bottom, transparent 0, #000 7%, #000 93%, transparent 100%)',
-                  maskImage: 'linear-gradient(to bottom, transparent 0, #000 7%, #000 93%, transparent 100%)',
-                }
+                    WebkitMaskImage: 'linear-gradient(to bottom, transparent 0, #000 7%, #000 93%, transparent 100%)',
+                    maskImage: 'linear-gradient(to bottom, transparent 0, #000 7%, #000 93%, transparent 100%)',
+                  }
                 : null),
             }}
           ></div>
@@ -946,27 +970,41 @@ function App() {
         style={{ minHeight: '100svh' }}
       >
         <div className={`intro-card ${GLASS} opacity-0 w-full max-w-sm px-8 py-10 text-center flex flex-col items-center gap-4`}>
-          <h1 className="text-xl md:text-2xl font-serif text-[#7E5C38] tracking-wide" style={{ direction: 'rtl' }}>
-            بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
-          </h1>
-          <span className="text-sm md:text-base font-serif text-[#5C4532] italic leading-relaxed block px-4" style={{ direction: 'rtl' }}>
-            بَارَكَ ٱللَّهُ لَكِ وَبَارَكَ عَلَيْكِ وَجَمَعَ بَيْنَكُمَا فِي خَيْرٍ
-          </span>
+          {/* Bismillah (sab se upar) */}
+          <p
+            dir="rtl"
+            lang="ar"
+            className="intro-item text-[28px] leading-[2] text-[#4A2E12]"
+            style={{ fontFamily: ARABIC_FONT }}
+          >
+            {INVITE.bismillah}
+          </p>
+
           <span className="intro-item text-[10px] uppercase tracking-[0.3em] text-[#5A3E2B] font-semibold">
             The Wedding Celebration
           </span>
           <p className="intro-item text-xs text-[#4A3B2C] italic font-serif">
             You are cordially invited to celebrate the union of
           </p>
-          <div className="intro-item text-3xl font-serif font-bold text-[#2C1D12] tracking-wide flex items-center justify-center gap-3">
-            <span>Mohsin</span>
-            <span className="text-[#8A6232] font-light italic text-2xl">&amp;</span>
-            <span>Iqra</span>
+          <div className="intro-item text-2xl sm:text-3xl font-serif font-bold text-[#2C1D12] tracking-wide flex flex-col items-center gap-1">
+            <span>{INVITE.husband}</span>
+            <span className="text-[#8A6232] font-light italic text-xl">&amp;</span>
+            <span>{INVITE.wife}</span>
           </div>
           <div className="intro-item w-16 h-[1px] bg-[#7E5C38]/50"></div>
-
           <p className="intro-item text-[11px] text-[#5A3E2B] italic font-serif">
             Your presence will make our day complete.
+          </p>
+
+          {/* Dua (sab se neeche) */}
+          <div className="intro-item w-10 h-[1px] bg-[#7E5C38]/40"></div>
+          <p
+            dir="rtl"
+            lang="ar"
+            className="intro-item text-xl leading-[2.1] text-[#4A2E12]"
+            style={{ fontFamily: ARABIC_FONT }}
+          >
+            {INVITE.dua}
           </p>
         </div>
 
@@ -995,7 +1033,7 @@ function App() {
             <ScratchCard>
               <span className="text-[11px] uppercase tracking-[0.3em] text-[#4A3B2C] font-medium">Sunday &amp; Monday</span>
               <span className="font-serif text-5xl font-bold leading-tight my-1 bg-gradient-to-b from-[#B8860B] to-[#6E4E2B] bg-clip-text text-transparent">
-                29 · 30
+                1 . 2
               </span>
               <span className="text-xs uppercase tracking-[0.25em] text-[#4A3B2C] font-medium">November 2026</span>
             </ScratchCard>
@@ -1039,17 +1077,17 @@ function App() {
 
           <div className="space-y-6 w-full">
             <div className="family-item space-y-1">
-              <h3 className="font-serif text-2xl text-[#2C1D12] font-medium tracking-wide">Mohsin</h3>
-              <p className="text-[11px] text-[#5A3E2B] uppercase tracking-widest font-semibold">Son of</p>
-              <p className="text-xs text-[#2F2318] font-serif">Mr. Muhammad Islam &amp; Mrs. Rehana Kosar</p>
+              <h3 className="font-serif text-2xl text-[#2C1D12] font-medium tracking-wide">{INVITE.boyFamily.family}</h3>
+              <p className="text-xs text-[#2F2318] font-serif">{INVITE.boyFamily.father}</p>
+              <p className="text-xs text-[#2F2318] font-serif">{INVITE.boyFamily.mother}</p>
             </div>
 
             <div className="family-item text-[#7E5C38] font-serif italic text-lg">&amp;</div>
 
             <div className="family-item space-y-1">
-              <h3 className="font-serif text-2xl text-[#2C1D12] font-medium tracking-wide">Iqra</h3>
-              <p className="text-[11px] text-[#5A3E2B] uppercase tracking-widest font-semibold">Daughter of</p>
-              <p className="text-xs text-[#2F2318] font-serif">Mr. Shokat &amp; Mrs. Nusrat</p>
+              <h3 className="font-serif text-2xl text-[#2C1D12] font-medium tracking-wide">{INVITE.girlFamily.family}</h3>
+              <p className="text-xs text-[#2F2318] font-serif">{INVITE.girlFamily.father}</p>
+              <p className="text-xs text-[#2F2318] font-serif">{INVITE.girlFamily.mother}</p>
             </div>
           </div>
         </div>
